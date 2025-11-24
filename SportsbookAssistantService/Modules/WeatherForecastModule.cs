@@ -24,7 +24,7 @@ public sealed class WeatherForecastModule : CarterModule
             return Results.Ok(page);
         })
         .WithName("GetAssistantPage")
-        .Produces<AssistantPageResponse>(StatusCodes.Status200OK)
+        .Produces<AssistantPageResponse>()
         .Produces(StatusCodes.Status404NotFound);
     }
 }
