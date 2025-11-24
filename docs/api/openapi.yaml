@@ -1,0 +1,177 @@
+openapi: 3.0.3
+info:
+  title: Sportsbook Assistant Service API
+  version: 0.1.0
+  description: |
+    REST API for the sportsbook assistant service that provides contextual help information
+    and support for the sportsbook frontend.
+    
+    ## Phases
+    
+    - **Phase 1**: Returns pre-mapped help articles based on context identifiers
+    - **Phase 2**: Supports free-form user questions via LLM and RAG integration
+    
+  contact:
+    name: Sportsbook Assistant Service Team
+
+servers:
+  - url: http://localhost:5000
+    description: Local development server
+  - url: https://api.sportsbook.example.com
+    description: Production server
+
+paths:
+  /assistant/{context_info}:
+    get:
+      summary: Get help articles for a given context
+      description: |
+        Returns help articles relevant to the specified context in the sportsbook frontend.
+        
+        **Phase 1**: Returns statically mapped articles based on the context identifier.
+        
+        **Phase 2**: When the optional `q` query parameter is provided, uses LLM and RAG
+        to answer the specific user question while considering the context.
+      operationId: getAssistantArticles
+      tags:
+        - Assistant
+      parameters:
+        - in: path
+          name: context_info
+          required: true
+          schema:
+            type: string
+          description: |
+            Logical context identifier representing the user's current location or state
+            in the sportsbook frontend.
+            
+            Format: `<area>/<sub-area>[/<specific-state>]`
+            
+            Examples:
+            - `bet-slip/empty`
+            - `bet-slip/single-bet`
+            - `live-betting/soccer`
+            - `account/deposit`
+          examples:
+            betSlipEmpty:
+              value: bet-slip/empty
+              summary: Empty bet slip context
+            accountDeposit:
+              value: account/deposit
+              summary: Account deposit page context
+            liveBettingSoccer:
+              value: live-betting/soccer
+              summary: Live soccer betting context
+              
+        - in: query
+          name: q
+          required: false
+          schema:
+            type: string
+          description: |
+            Optional free-form user question (Phase 2 feature).
+            
+            When provided, the service uses LLM and RAG to generate an answer based on
+            the help content corpus, using the context as additional signal.
+          example: How do I add multiple bets to my bet slip?
+          
+      responses:
+        '200':
+          description: List of help articles relevant to the context
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Article'
+              examples:
+                betSlipHelp:
+                  summary: Help articles for bet slip
+                  value:
+                    - title: How to Place a Bet
+                      content: <p>To place a bet, select your desired outcome by clicking on the odds. This will add the selection to your bet slip. Review your bet slip, enter your stake amount, and click 'Place Bet' to confirm.</p>
+                    - title: Understanding Bet Types
+                      content: <p>There are several types of bets available. Single bets involve one selection, while accumulators combine multiple selections into one bet with higher potential returns.</p>
+                      
+                depositHelp:
+                  summary: Help articles for deposits
+                  value:
+                    - title: Making a Deposit
+                      content: <p>To deposit funds into your account, navigate to the Account section and select Deposit. Choose your preferred payment method, enter the amount, and follow the on-screen instructions to complete the transaction.</p>
+                      
+        '400':
+          description: Bad request - invalid context format or query parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Invalid context format
+                message: Context identifier must follow the format <area>/<sub-area>
+                
+        '404':
+          description: Not found - no articles available for the specified context
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Context not found
+                message: No help articles available for context 'unknown/context'
+                
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Internal server error
+                message: An unexpected error occurred while processing your request
+
+components:
+  schemas:
+    Article:
+      type: object
+      required:
+        - title
+        - content
+      properties:
+        title:
+          type: string
+          description: Human-readable title for the article
+          example: How to Place a Bet
+        content:
+          type: string
+          description: HTML content of the article
+          example: <p>To place a bet, select your desired outcome...</p>
+      description: |
+        Represents a help article with a title and HTML content.
+        
+        Future extensions may include optional fields like:
+        - `id`: Unique article identifier
+        - `category`: Topic category
+        - `tags`: Array of keywords
+        - `relatedArticles`: Links to related content
+        
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Short error code or identifier
+          example: Invalid context format
+        message:
+          type: string
+          description: Human-readable error message
+          example: Context identifier must follow the format <area>/<sub-area>
+        details:
+          type: object
+          description: Optional additional error details
+          additionalProperties: true
+
+tags:
+  - name: Assistant
+    description: Contextual help and assistant endpoints
