@@ -1,6 +1,6 @@
 @SportsbookAssistantService_HostAddress = http://localhost:5031
 
-GET {{SportsbookAssistantService_HostAddress}}/weatherforecast/
+GET {{SportsbookAssistantService_HostAddress}}/assistant/DEPOSIT
 Accept: application/json
 
 ###
