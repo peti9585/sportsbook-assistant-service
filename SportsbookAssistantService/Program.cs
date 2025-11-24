@@ -28,6 +28,8 @@ builder.Services.AddCors(options =>
 builder.Services.AddCarter();
 // Assistant page service (phase 1: static HTML-backed)
 builder.Services.AddSingleton<IAssistantPageService, MarkdownAssistantPageService>();
+// Free-form question answering service (mock for now)
+builder.Services.AddSingleton<IQuestionAnsweringService, MockQuestionAnsweringService>();
 
 var app = builder.Build();
 
