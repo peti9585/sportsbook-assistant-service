@@ -1,5 +1,6 @@
 using Carter;
 using Microsoft.Extensions.FileProviders;
+using SportsbookAssistantService.Configuration;
 using SportsbookAssistantService.Interfaces;
 using SportsbookAssistantService.Services;
 
@@ -8,6 +9,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+// Configure OpenAI settings
+builder.Services.Configure<OpenAISettings>(builder.Configuration.GetSection("OpenAI"));
 
 // CORS configuration
 builder.Services.AddCors(options =>
@@ -28,8 +32,8 @@ builder.Services.AddCors(options =>
 builder.Services.AddCarter();
 // Assistant page service (phase 1: static HTML-backed)
 builder.Services.AddSingleton<IAssistantPageService, MarkdownAssistantPageService>();
-// Free-form question answering service (mock for now)
-builder.Services.AddSingleton<IQuestionAnsweringService, MockQuestionAnsweringService>();
+// Free-form question answering service using OpenAI
+builder.Services.AddSingleton<IQuestionAnsweringService, OpenAIQuestionAnsweringService>();
 
 var app = builder.Build();
 
