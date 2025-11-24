@@ -5,24 +5,22 @@ using SportsbookAssistantService.ViewModels;
 namespace SportsbookAssistantService.Services;
 
 /// <summary>
-/// File-system based implementation mapping pageId to markdown file whose filename starts with that id.
+/// File-system based implementation mapping contextInfo to markdown file.
 /// </summary>
-public sealed class MarkdownAssistantPageService : IAssistantPageService
+public sealed class MarkdownAssistantPageService(IWebHostEnvironment env) : IAssistantPageService
 {
-    private readonly string _pagesRoot;
+    private readonly string _pagesRoot = Path.Combine(env.ContentRootPath, "Content", "AssistantPages");
 
-    public MarkdownAssistantPageService(IWebHostEnvironment env)
+    public async Task<AssistantPageResponse?> GetPageAsync(string contextInfo)
     {
-        _pagesRoot = Path.Combine(env.ContentRootPath, "Content", "AssistantPages");
-    }
-
-    public async Task<AssistantPageResponse?> GetPageAsync(int pageId)
-    {
-        if (pageId <= 0) return null;
+        if (string.IsNullOrWhiteSpace(contextInfo)) return null;
         if (!Directory.Exists(_pagesRoot)) return null;
 
-        var file = Directory.GetFiles(_pagesRoot, $"{pageId}-*.md").OrderBy(f => f).FirstOrDefault();
+        // Map contextInfo like "bet-slip/empty" to a filename pattern, e.g. "bet-slip-empty.md"
+        var safeName = contextInfo.Replace('/', '-');
+        var file = Directory.GetFiles(_pagesRoot, $"{safeName}.md").OrderBy(f => f).FirstOrDefault();
         if (file == null) return null;
+
         var markdown = await File.ReadAllTextAsync(file);
         var title = ExtractTitle(markdown) ?? Path.GetFileNameWithoutExtension(file);
         var html = ConvertMarkdownToHtml(markdown);

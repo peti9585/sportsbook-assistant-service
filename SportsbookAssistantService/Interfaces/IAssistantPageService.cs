@@ -8,9 +8,9 @@ namespace SportsbookAssistantService.Interfaces;
 public interface IAssistantPageService
 {
     /// <summary>
-    /// Loads a single assistant page for the specified context id.
+    /// Loads a single assistant page for the specified context info.
     /// </summary>
-    /// <param name="pageId">Context/page identifier.</param>
+    /// <param name="contextInfo">Context identifier, e.g. "bet-slip/empty".</param>
     /// <returns>The page, or null if not found.</returns>
-    Task<AssistantPageResponse?> GetPageAsync(int pageId);
+    Task<AssistantPageResponse?> GetPageAsync(string contextInfo);
 }

@@ -1,6 +1,6 @@
 @SportsbookAssistantService_HostAddress = http://localhost:5031
 
-GET {{SportsbookAssistantService_HostAddress}}/assistant/2
+GET {{SportsbookAssistantService_HostAddress}}/assistant/bet-slip-empty
 Accept: application/json
 
 ###

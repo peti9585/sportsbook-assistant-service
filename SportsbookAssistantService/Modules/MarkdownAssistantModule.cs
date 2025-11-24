@@ -11,23 +11,24 @@ public sealed class MarkdownAssistantModule : CarterModule
 {
     public override void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/assistant/{pageId:int}", async (
-                int pageId,
+        app.MapGet("/assistant/{contextInfo}", async (
+                string contextInfo,
+                string? q,
                 IAssistantPageService service,
                 ILogger<MarkdownAssistantModule> logger) =>
         {
-            var page = await service.GetPageAsync(pageId);
+            var page = await service.GetPageAsync(contextInfo);
             if (page is null)
             {
-                logger.LogInformation("Assistant page {PageId} not found", pageId);
+                logger.LogInformation("Assistant page {ContextInfo} not found", contextInfo);
                 return Results.NotFound();
             }
 
-            logger.LogInformation("Assistant page {PageId} served: {Title}", pageId, page.Title);
+            logger.LogInformation("Assistant page {ContextInfo} served: {Title}", contextInfo, page.Title);
 
             // Wrap single page into an array to match article[] contract
             var articles = new[] { page };
-            
+
             return Results.Ok(articles);
         })
         .WithName("GetAssistantPage")
