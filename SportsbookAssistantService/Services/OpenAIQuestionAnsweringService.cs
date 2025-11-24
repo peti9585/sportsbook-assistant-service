@@ -23,14 +23,16 @@ public sealed class OpenAIQuestionAnsweringService : IQuestionAnsweringService
         _settings = settings.Value;
         _logger = logger;
 
-        // Validate API key
+        // Log warning if API key is not configured, but don't fail initialization
+        // This allows the application to start even without API key for development
         if (string.IsNullOrWhiteSpace(_settings.ApiKey))
         {
-            throw new InvalidOperationException(
-                "OpenAI API key is not configured. Please set the OpenAI:ApiKey configuration value.");
+            _logger.LogWarning(
+                "OpenAI API key is not configured. The question answering service will fail when called. " +
+                "Please set the OpenAI:ApiKey configuration value.");
         }
 
-        // Initialize the OpenAI chat client
+        // Initialize the OpenAI chat client (will be null if API key is not set)
         _chatClient = new ChatClient(_settings.Model, _settings.ApiKey);
     }
 
@@ -42,6 +44,14 @@ public sealed class OpenAIQuestionAnsweringService : IQuestionAnsweringService
         if (string.IsNullOrWhiteSpace(question))
         {
             throw new ArgumentException("Question cannot be empty.", nameof(question));
+        }
+
+        // Validate API key is configured before making the request
+        if (string.IsNullOrWhiteSpace(_settings.ApiKey))
+        {
+            _logger.LogError("Attempted to use OpenAI service without API key configured");
+            throw new InvalidOperationException(
+                "OpenAI API key is not configured. Please set the OpenAI:ApiKey configuration value.");
         }
 
         try
