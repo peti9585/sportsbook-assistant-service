@@ -61,17 +61,21 @@ public sealed class OpenAIQuestionAnsweringService : IQuestionAnsweringService
                 new UserChatMessage(question)
             };
 
-            // Call OpenAI API
+            // Call OpenAI API with timeout
             var chatOptions = new ChatCompletionOptions
             {
                 MaxOutputTokenCount = _settings.MaxTokens,
                 Temperature = _settings.Temperature
             };
 
+            // Create a timeout token source combined with the provided cancellation token
+            using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(_settings.TimeoutSeconds));
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+
             var completion = await _chatClient.CompleteChatAsync(
                 messages,
                 chatOptions,
-                cancellationToken);
+                linkedCts.Token);
 
             var answer = completion.Value.Content[0].Text;
 
@@ -85,6 +89,11 @@ public sealed class OpenAIQuestionAnsweringService : IQuestionAnsweringService
                 Question = question,
                 Answer = answer
             };
+        }
+        catch (OperationCanceledException ex) when (ex.CancellationToken.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning("OpenAI API request timed out after {Timeout} seconds", _settings.TimeoutSeconds);
+            throw new TimeoutException($"The request to OpenAI timed out after {_settings.TimeoutSeconds} seconds.", ex);
         }
         catch (Exception ex)
         {

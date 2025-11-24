@@ -25,4 +25,9 @@ public sealed class OpenAISettings
     /// Higher values make output more random, lower values more deterministic.
     /// </summary>
     public float Temperature { get; init; } = 0.7f;
+
+    /// <summary>
+    /// Timeout for OpenAI API requests in seconds.
+    /// </summary>
+    public int TimeoutSeconds { get; init; } = 30;
 }
