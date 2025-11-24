@@ -8,7 +8,7 @@ public sealed class OpenAISettings
     /// <summary>
     /// The OpenAI API key.
     /// </summary>
-    public required string ApiKey { get; init; }
+    public string? ApiKey { get; init; }
 
     /// <summary>
     /// The model to use for completions (e.g., "gpt-3.5-turbo", "gpt-4").

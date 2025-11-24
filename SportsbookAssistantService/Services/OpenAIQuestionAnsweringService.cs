@@ -100,10 +100,19 @@ public sealed class OpenAIQuestionAnsweringService : IQuestionAnsweringService
                 Answer = answer
             };
         }
-        catch (OperationCanceledException ex) when (ex.CancellationToken.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+        catch (OperationCanceledException ex)
         {
-            _logger.LogWarning("OpenAI API request timed out after {Timeout} seconds", _settings.TimeoutSeconds);
-            throw new TimeoutException($"The request to OpenAI timed out after {_settings.TimeoutSeconds} seconds.", ex);
+            // Check if the cancellation was due to timeout (timeoutCts) or client cancellation
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                // If the client token wasn't cancelled, it must be a timeout
+                _logger.LogWarning("OpenAI API request timed out after {Timeout} seconds", _settings.TimeoutSeconds);
+                throw new TimeoutException($"The request to OpenAI timed out after {_settings.TimeoutSeconds} seconds.", ex);
+            }
+            
+            // Client cancelled the request
+            _logger.LogInformation("OpenAI API request was cancelled by client");
+            throw;
         }
         catch (Exception ex)
         {
