@@ -29,6 +29,38 @@ This service delivers help articles to the sportsbook frontend based on context 
 dotnet build SportsbookAssistantService.sln
 ```
 
+### Configuration
+
+#### OpenAI API Key
+
+The service requires an OpenAI API key to use the question answering functionality. Configure it in one of the following ways:
+
+**Option 1: User Secrets (Recommended for Development)**
+
+```bash
+cd SportsbookAssistantService
+dotnet user-secrets init
+dotnet user-secrets set "OpenAI:ApiKey" "your-api-key-here"
+```
+
+**Option 2: Environment Variable**
+
+```bash
+export OpenAI__ApiKey="your-api-key-here"
+```
+
+**Option 3: appsettings.Development.json**
+
+```json
+{
+  "OpenAI": {
+    "ApiKey": "your-api-key-here"
+  }
+}
+```
+
+**Note**: Never commit API keys to source control. The service will start without an API key but will return an error when the question answering endpoint is called.
+
 ### Running
 
 ```bash
