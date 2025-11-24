@@ -20,6 +20,16 @@ The repository now uses the following structure:
 
 ## Agent Definitions
 
+Custom agents require **YAML frontmatter** at the top of each `.agent.md` file to be recognized by GitHub Copilot:
+
+```yaml
+---
+name: agent-name
+description: Brief description of the agent's purpose and expertise
+target: github-copilot
+---
+```
+
 The repository provides three specialized agents to assist with different aspects of development:
 
 ### 1. Development Assistant (`dev-assistant.agent.md`)
@@ -130,11 +140,14 @@ GitHub Copilot supports agents at three levels:
 
 ## Best Practices
 
+- **Always include YAML frontmatter** in `.agent.md` files with `name`, `description`, and `target` fields
 - Keep agent files focused on their specific domain
 - Update agents when project architecture evolves
 - Reference docs in `docs/architecture/` for detailed decisions
 - Use general instructions for cross-cutting concerns
 - Document any custom agents in this README
+- Use descriptive agent names (e.g., `dev-assistant`, not just `dev`)
+- Write clear, specific descriptions that explain the agent's expertise
 
 ## Future Enhancements
 

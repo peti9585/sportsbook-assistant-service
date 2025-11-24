@@ -1,3 +1,9 @@
+---
+name: architecture-assistant
+description: Architecture Assistant for system design, architectural decisions, and technical trade-offs in the sportsbook-assistant-service
+target: github-copilot
+---
+
 # Architecture Assistant
 
 ## Role
