@@ -4,3 +4,23 @@ GET {{SportsbookAssistantService_HostAddress}}/assistant/DEPOSIT
 Accept: application/json
 
 ###
+
+POST {{SportsbookAssistantService_HostAddress}}/assistant/query
+Content-Type: application/json
+
+{
+  "question": "How do I make a deposit?",
+  "context": "DEPOSIT"
+}
+
+###
+
+POST {{SportsbookAssistantService_HostAddress}}/assistant/query
+Content-Type: application/json
+
+{
+  "question": "What are the betting limits for football?",
+  "context": null
+}
+
+###
