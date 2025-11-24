@@ -1,14 +1,14 @@
-using System.Text;
 using SportsbookAssistantService.Interfaces;
 using SportsbookAssistantService.ViewModels;
 
 namespace SportsbookAssistantService.Services;
 
 /// <summary>
-/// File-system based implementation mapping contextInfo to markdown file.
+/// File-system based implementation mapping contextInfo to HTML file.
 /// </summary>
 public sealed class MarkdownAssistantPageService(IWebHostEnvironment env) : IAssistantPageService
 {
+    private const string startTag = "<h1";
     private readonly string _pagesRoot = Path.Combine(env.ContentRootPath, "Content", "AssistantPages");
 
     public async Task<AssistantPageResponse?> GetPageAsync(string contextInfo)
@@ -16,76 +16,44 @@ public sealed class MarkdownAssistantPageService(IWebHostEnvironment env) : IAss
         if (string.IsNullOrWhiteSpace(contextInfo)) return null;
         if (!Directory.Exists(_pagesRoot)) return null;
 
-        // Map contextInfo like "bet-slip/empty" to a filename pattern, e.g. "bet-slip-empty.md"
+        // Map contextInfo like "bet-slip/empty" to a filename pattern, e.g. "bet-slip-empty.html"
         var safeName = contextInfo.Replace('/', '-');
-        var file = Directory.GetFiles(_pagesRoot, $"{safeName}.md").OrderBy(f => f).FirstOrDefault();
+        var file = Directory.GetFiles(_pagesRoot, $"{safeName}.html").OrderBy(f => f).FirstOrDefault();
         if (file == null) return null;
 
-        var markdown = await File.ReadAllTextAsync(file);
-        var title = ExtractTitle(markdown) ?? Path.GetFileNameWithoutExtension(file);
-        var html = ConvertMarkdownToHtml(markdown);
+        var html = await File.ReadAllTextAsync(file);
+        var title = ExtractTitleFromHtml(html) ?? Path.GetFileNameWithoutExtension(file);
+
         return new AssistantPageResponse { Title = title, Content = html };
     }
 
-    private static string? ExtractTitle(string markdown)
+    private static string? ExtractTitleFromHtml(string html)
     {
-        foreach (var line in markdown.Split('\n'))
+        if (string.IsNullOrWhiteSpace(html)) return null;
+
+        // Try to extract from <h1>...</h1>
+        var idx = html.IndexOf(startTag, StringComparison.OrdinalIgnoreCase);
+        if (idx >= 0)
         {
-            var trimmed = line.Trim();
-            if (trimmed.StartsWith("# "))
+            var closeStart = html.IndexOf('>', idx);
+            var closeEnd = html.IndexOf("</h1>", idx, StringComparison.OrdinalIgnoreCase);
+            if (closeStart >= 0 && closeEnd > closeStart)
             {
-                return trimmed[2..].Trim();
+                var inner = html.Substring(closeStart + 1, closeEnd - closeStart - 1);
+                return System.Net.WebUtility.HtmlDecode(inner.Trim());
             }
         }
 
-        return null;
-    }
-
-    // Very naive markdown to HTML conversion supporting headings (#, ##), paragraphs and unordered lists.
-    private static string ConvertMarkdownToHtml(string markdown)
-    {
-        var lines = markdown.Replace("\r", string.Empty).Split('\n');
-        var sb = new StringBuilder();
-        var inList = false;
-        foreach (var raw in lines)
+        // Fallback: try <title>...</title>
+        var titleStart = html.IndexOf("<title>", StringComparison.OrdinalIgnoreCase);
+        if (titleStart < 0) return null;
         {
-            var line = raw.TrimEnd();
-            if (string.IsNullOrWhiteSpace(line))
-            {
-                if (inList)
-                {
-                    sb.AppendLine("</ul>");
-                    inList = false;
-                }
-                continue;
-            }
-            if (line.StartsWith("# "))
-            {
-                if (inList) { sb.AppendLine("</ul>"); inList = false; }
-                sb.Append("<h1>").Append(System.Net.WebUtility.HtmlEncode(line[2..].Trim())).AppendLine("</h1>");
-            }
-            else if (line.StartsWith("## "))
-            {
-                if (inList) { sb.AppendLine("</ul>"); inList = false; }
-                sb.Append("<h2>").Append(System.Net.WebUtility.HtmlEncode(line[3..].Trim())).AppendLine("</h2>");
-            }
-            else if (line.StartsWith("* "))
-            {
-                if (!inList)
-                {
-                    sb.AppendLine("<ul>");
-                    inList = true;
-                }
-                sb.Append("<li>").Append(System.Net.WebUtility.HtmlEncode(line[2..].Trim())).AppendLine("</li>");
-            }
-            else
-            {
-                if (inList) { sb.AppendLine("</ul>"); inList = false; }
-                sb.Append("<p>").Append(System.Net.WebUtility.HtmlEncode(line.Trim())).AppendLine("</p>");
-            }
+            var titleEnd = html.IndexOf("</title>", titleStart, StringComparison.OrdinalIgnoreCase);
+            
+            if (titleEnd <= titleStart) return null;
+            
+            var inner = html.Substring(titleStart + "<title>".Length, titleEnd - titleStart - "<title>".Length);
+            return System.Net.WebUtility.HtmlDecode(inner.Trim());
         }
-        if (inList) sb.AppendLine("</ul>");
-
-        return sb.ToString();
     }
 }
