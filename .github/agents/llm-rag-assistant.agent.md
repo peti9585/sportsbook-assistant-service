@@ -1,3 +1,9 @@
+---
+name: llm-rag-assistant
+description: LLM & RAG Design Assistant specializing in AI integration, semantic search, and retrieval-augmented generation for the sportsbook-assistant-service
+target: github-copilot
+---
+
 # LLM & RAG Design Assistant
 
 ## Role

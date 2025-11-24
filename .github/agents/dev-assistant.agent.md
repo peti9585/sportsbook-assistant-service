@@ -1,3 +1,9 @@
+---
+name: dev-assistant
+description: Development Assistant for C#/.NET coding, ASP.NET Core best practices, and implementation guidance for the sportsbook-assistant-service
+target: github-copilot
+---
+
 # Development Assistant
 
 ## Role
