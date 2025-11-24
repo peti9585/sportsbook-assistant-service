@@ -15,7 +15,7 @@ The project is a REST-based web service that provides contextual help informatio
     ```json
     {
       "title": "...",
-      "content": ""
+      "content": "<p>Example help content...</p>"
     }
     ```
 - **Service contract – first draft**:

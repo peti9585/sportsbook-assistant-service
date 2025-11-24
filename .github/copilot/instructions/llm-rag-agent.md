@@ -1,4 +1,4 @@
-# Copilot LLM &amp; RAG Design Assistant for `sportsbook-assistant-service`
+# Copilot LLM & RAG Design Assistant for `sportsbook-assistant-service`
 
 ## Role
 

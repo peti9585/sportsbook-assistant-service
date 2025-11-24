@@ -14,7 +14,7 @@ The service is a REST web service that returns help "articles" for the sportsboo
     ```json
     {
       "title": "...",
-      "content": ""
+      "content": "<p>Example help content...</p>"
     }
     ```
 - Phase 1: Map `context_info` → pre-generated HTML files and titles.
