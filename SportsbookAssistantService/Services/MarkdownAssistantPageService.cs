@@ -7,18 +7,23 @@ namespace SportsbookAssistantService.Services;
 /// <summary>
 /// File-system based implementation mapping pageId to markdown file whose filename starts with that id.
 /// </summary>
-public sealed class MarkdownAssistantPageService(IWebHostEnvironment env) : IAssistantPageService
+public sealed class MarkdownAssistantPageService : IAssistantPageService
 {
-    private readonly string _pagesRoot = Path.Combine(env.ContentRootPath, "Content", "AssistantPages");
+    private readonly string _pagesRoot;
 
-    public AssistantPageResponse? GetPage(int pageId)
+    public MarkdownAssistantPageService(IWebHostEnvironment env)
+    {
+        _pagesRoot = Path.Combine(env.ContentRootPath, "Content", "AssistantPages");
+    }
+
+    public async Task<AssistantPageResponse?> GetPageAsync(int pageId)
     {
         if (pageId <= 0) return null;
         if (!Directory.Exists(_pagesRoot)) return null;
 
         var file = Directory.GetFiles(_pagesRoot, $"{pageId}-*.md").OrderBy(f => f).FirstOrDefault();
         if (file == null) return null;
-        var markdown = File.ReadAllText(file);
+        var markdown = await File.ReadAllTextAsync(file);
         var title = ExtractTitle(markdown) ?? Path.GetFileNameWithoutExtension(file);
         var html = ConvertMarkdownToHtml(markdown);
         return new AssistantPageResponse { Title = title, Content = html };
@@ -34,7 +39,7 @@ public sealed class MarkdownAssistantPageService(IWebHostEnvironment env) : IAss
                 return trimmed[2..].Trim();
             }
         }
-        
+
         return null;
     }
 
@@ -82,7 +87,7 @@ public sealed class MarkdownAssistantPageService(IWebHostEnvironment env) : IAss
             }
         }
         if (inList) sb.AppendLine("</ul>");
-        
+
         return sb.ToString();
     }
 }

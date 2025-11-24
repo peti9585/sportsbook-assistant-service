@@ -5,26 +5,33 @@ using SportsbookAssistantService.ViewModels;
 namespace SportsbookAssistantService.Modules;
 
 /// <summary>
-/// Carter module exposing weather forecast endpoints.
+/// Carter module exposing assistant help endpoints.
 /// </summary>
-public sealed class WeatherForecastModule : CarterModule
+public sealed class MarkdownAssistantModule : CarterModule
 {
-    // Remove legacy constructor-based route registration and implement AddRoutes override required by Carter 8
     public override void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/assistant/{pageId:int}", (int pageId, IAssistantPageService service, ILogger<WeatherForecastModule> logger) =>
+        app.MapGet("/assistant/{pageId:int}", async (
+                int pageId,
+                IAssistantPageService service,
+                ILogger<MarkdownAssistantModule> logger) =>
         {
-            var page = service.GetPage(pageId);
+            var page = await service.GetPageAsync(pageId);
             if (page is null)
             {
                 logger.LogInformation("Assistant page {PageId} not found", pageId);
                 return Results.NotFound();
             }
+
             logger.LogInformation("Assistant page {PageId} served: {Title}", pageId, page.Title);
-            return Results.Ok(page);
+
+            // Wrap single page into an array to match article[] contract
+            var articles = new[] { page };
+            
+            return Results.Ok(articles);
         })
         .WithName("GetAssistantPage")
-        .Produces<AssistantPageResponse>()
+        .Produces<AssistantPageResponse[]>()
         .Produces(StatusCodes.Status404NotFound);
     }
 }
